@@ -1,5 +1,6 @@
-cameras: []
 edge:
   node_id: edge-01
   frame_buffer_size: 2
   reconnect_delay_seconds: 2.0
+cameras: []
+# Example camera entry: {id: lobby, source: rtsp://user:password@host/stream, fallback_sources: [0]}

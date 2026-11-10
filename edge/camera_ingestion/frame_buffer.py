@@ -19,8 +19,7 @@ class FrameBuffer:
 
     def get(self, timeout: float | None = None) -> Any | None:
         with self._condition:
-            if not self._frames:
-                self._condition.wait(timeout)
+            self._condition.wait_for(lambda: bool(self._frames), timeout)
             return self._frames.popleft() if self._frames else None
 
     def get_latest(self) -> Any | None:
