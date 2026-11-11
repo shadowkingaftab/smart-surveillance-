@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import os
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from urllib.error import URLError
 from urllib.request import Request, urlopen
@@ -78,7 +79,7 @@ class AlertNotifier:
             mobile_push_sent=statuses.get("mobile", False),
         )
 
-    async def dashboard_events(self):
+    async def dashboard_events(self) -> AsyncIterator[dict[str, object]]:
         """Yield live alerts to a dashboard WebSocket endpoint or event consumer."""
         queue: asyncio.Queue[dict[str, object]] = asyncio.Queue(maxsize=self.dashboard_queue_size)
         self._subscribers.add(queue)

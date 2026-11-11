@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any
 
 import cv2
+import numpy as np
 
 from edge.camera_ingestion.frame_buffer import FrameBuffer
 
@@ -23,7 +23,7 @@ class CameraProcessor:
             raise ValueError("At least one camera source is required")
         if reconnect_delay <= 0:
             raise ValueError("reconnect_delay must be greater than zero")
-        self.frames = FrameBuffer(buffer_size)
+        self.frames: FrameBuffer[tuple[float, np.ndarray]] = FrameBuffer(buffer_size)
         self.reconnect_delay = reconnect_delay
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -36,10 +36,10 @@ class CameraProcessor:
         self._thread = threading.Thread(target=self._capture_loop, name=f"camera-{self.camera_id}", daemon=True)
         self._thread.start()
 
-    def read(self, timeout: float | None = 1.0) -> Any | None:
+    def read(self, timeout: float | None = 1.0) -> tuple[float, np.ndarray] | None:
         return self.frames.get(timeout)
 
-    def read_latest(self) -> Any | None:
+    def read_latest(self) -> tuple[float, np.ndarray] | None:
         return self.frames.get_latest()
 
     def stop(self, timeout: float | None = 5.0) -> None:

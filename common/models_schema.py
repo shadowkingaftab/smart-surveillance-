@@ -6,6 +6,12 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ContractModel(BaseModel):
+    """Reject undeclared fields in every JSON contract and nested object."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class DetectionCategory(str, Enum):
     PERSON = "person"
     VEHICLE = "vehicle"
@@ -15,14 +21,14 @@ class DetectionCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
-class BoundingBox(BaseModel):
+class BoundingBox(ContractModel):
     x_min: float
     y_min: float
     x_max: float
     y_max: float
 
 
-class DetectionBox(BaseModel):
+class DetectionBox(ContractModel):
     detection_id: str
     label: str
     category: DetectionCategory = DetectionCategory.UNKNOWN
@@ -32,7 +38,7 @@ class DetectionBox(BaseModel):
     appearance_embedding: list[float] | None = Field(default=None, min_length=1)
 
 
-class KeypointLandmark(BaseModel):
+class KeypointLandmark(ContractModel):
     landmark_id: int
     name: str
     x: float
@@ -41,7 +47,7 @@ class KeypointLandmark(BaseModel):
     visibility: float = Field(default=1, ge=0, le=1)
 
 
-class PoseLandmarks(BaseModel):
+class PoseLandmarks(ContractModel):
     person_track_id: int | None = None
     landmarks: list[KeypointLandmark] = Field(default_factory=list)
     activity_primitive: str | None = None
@@ -54,7 +60,7 @@ class ThreatLevel(str, Enum):
     CRITICAL = "CRITICAL"
 
 
-class ThreatAssessment(BaseModel):
+class ThreatAssessment(ContractModel):
     assessment_id: str
     global_track_id: str | None = None
     camera_id: str
@@ -67,7 +73,7 @@ class ThreatAssessment(BaseModel):
     evidence_detection_id: str | None = None
 
 
-class CrossCameraTrack(BaseModel):
+class CrossCameraTrack(ContractModel):
     global_track_id: str
     active_camera_ids: list[str] = Field(default_factory=list)
     local_track_mappings: dict[str, int] = Field(default_factory=dict)
@@ -77,7 +83,7 @@ class CrossCameraTrack(BaseModel):
     last_seen: datetime
 
 
-class ThreatAlertPayload(BaseModel):
+class ThreatAlertPayload(ContractModel):
     alert_id: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     location_name: str
@@ -88,9 +94,7 @@ class ThreatAlertPayload(BaseModel):
     false_alarm_mitigated: bool = False
 
 
-class FrameMetadata(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class FrameMetadata(ContractModel):
     frame_id: str
     edge_node_id: str
     camera_id: str

@@ -5,7 +5,9 @@ import signal
 import threading
 
 from config.config_loader import load_config
-from edge.ai_inference import ActivityAnalyzer, EdgeInferencePipeline, ReIdEncoder, YoloDetector
+from edge.ai_inference import (
+    ActivityAnalyzer, CameraInferenceWorker, EdgeInferencePipeline, ReIdEncoder, YoloDetector,
+)
 from edge.camera_ingestion import CameraProcessor
 
 
@@ -51,33 +53,18 @@ def main() -> None:
     signal.signal(signal.SIGINT, lambda *_: shutdown.set())
     if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, lambda *_: shutdown.set())
-    for camera in cameras:
-        camera.start()
-        logging.getLogger(__name__).info("Started camera %s", camera.camera_id)
-    last_capture: dict[str, float] = {}
+    workers = [CameraInferenceWorker(camera, pipelines[camera.camera_id]) for camera in cameras]
     try:
-        while not shutdown.is_set():
-            processed = False
-            for camera in cameras:
-                captured = camera.read_latest()
-                if captured is None:
-                    continue
-                captured_at, frame = captured
-                previous = last_capture.get(camera.camera_id)
-                fps = 1.0 / (captured_at - previous) if previous and captured_at > previous else 0.0
-                last_capture[camera.camera_id] = captured_at
-                metadata = pipelines[camera.camera_id].process(
-                    frame, camera.camera_id, fps=fps, captured_at=captured_at,
-                )
-                logging.getLogger(__name__).info(
-                    "camera=%s detections=%d poses=%d inference_ms=%.1f",
-                    camera.camera_id, len(metadata.detections), len(metadata.poses),
-                    metadata.inference_latency_ms,
-                )
-                processed = True
-            if not processed:
-                shutdown.wait(0.01)
+        for camera in cameras:
+            camera.start()
+            logging.getLogger(__name__).info("Started camera %s", camera.camera_id)
+        for worker in workers:
+            worker.start()
+        while not shutdown.wait(1.0):
+            pass
     finally:
+        for worker in workers:
+            worker.stop(timeout=None)
         for pipeline in pipelines.values():
             pipeline.close()
         for camera in cameras:
