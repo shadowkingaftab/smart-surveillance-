@@ -64,6 +64,7 @@ class ThreatAssessment(BaseModel):
     confidence_score: float = Field(ge=0, le=1)
     is_anomaly: bool
     context_notes: str
+    evidence_detection_id: str | None = None
 
 
 class CrossCameraTrack(BaseModel):
@@ -74,6 +75,17 @@ class CrossCameraTrack(BaseModel):
     last_known_location: str
     first_seen: datetime
     last_seen: datetime
+
+
+class ThreatAlertPayload(BaseModel):
+    alert_id: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    location_name: str
+    camera_id: str
+    threat_assessment: ThreatAssessment
+    bounding_box_snapshot: BoundingBox | None = None
+    snapshot_image_url: str | None = None
+    false_alarm_mitigated: bool = False
 
 
 class FrameMetadata(BaseModel):

@@ -55,8 +55,11 @@ class ThreatEvaluator:
                     or assignment.location in self.normal_waiting_cameras
                 ),
             )
-            if nearby_weapon:
-                scores["weapon_detected"] = max(scores.get("weapon_detected", 0), 0.55)
+            evidence_confidence = (
+                nearby_weapon.confidence if nearby_weapon else
+                nearby_tool.confidence if nearby_tool else person.confidence
+            )
+            scores = {name: score * evidence_confidence for name, score in scores.items()}
             assessments.append(self._assessment(
                 metadata, assignment.global_track_id, assignment.camera_id, scores,
                 activity, assignment.location,
@@ -72,16 +75,21 @@ class ThreatEvaluator:
         for detection in metadata.detections:
             if detection.category != DetectionCategory.WEAPON or detection.detection_id in assigned_weapons:
                 continue
-            scores = context_scores(category=detection.category, activity=None)
+            scores = {
+                name: score * detection.confidence
+                for name, score in context_scores(category=detection.category, activity=None).items()
+            }
             assessments.append(self._assessment(
                 metadata, None, metadata.camera_id, scores, None,
                 metadata.camera_id, "weapon detected without a nearby tracked person",
+                evidence_detection_id=detection.detection_id,
             ))
         return assessments
 
     def _assessment(self, metadata: FrameMetadata, track_id: str | None, camera_id: str,
                     components: dict[str, float], activity: str | None,
-                    location: str, context: str) -> ThreatAssessment:
+                    location: str, context: str,
+                    evidence_detection_id: str | None = None) -> ThreatAssessment:
         instantaneous = min(1.0, sum(components.values()))
         previous, previous_time = self._scores.get(track_id or "", (0.0, metadata.timestamp))
         elapsed = max(0.0, (metadata.timestamp - previous_time).total_seconds())
@@ -102,6 +110,7 @@ class ThreatEvaluator:
             behavior_primitive=primitive, threat_level=level,
             confidence_score=confidence, is_anomaly=confidence >= 0.35,
             context_notes=f"{context}; location={location}; activity={activity or 'unknown'}; evidence: {detail}",
+            evidence_detection_id=evidence_detection_id,
         )
 
     @staticmethod

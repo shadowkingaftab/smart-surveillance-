@@ -25,3 +25,11 @@ threat_assessment:
   loiter_seconds: 180
   normal_waiting_cameras: []
   score_decay_seconds: 45
+alerting:
+  minimum_confirmations: 3
+  confirmation_window_seconds: 5.0
+  minimum_average_confidence: 0.72
+  minimum_threat_level: HIGH
+  alert_cooldown_seconds: 60
+  delivery_timeout_seconds: 5
+  dashboard_queue_size: 128
