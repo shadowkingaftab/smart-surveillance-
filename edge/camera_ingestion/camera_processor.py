@@ -39,6 +39,9 @@ class CameraProcessor:
     def read(self, timeout: float | None = 1.0) -> Any | None:
         return self.frames.get(timeout)
 
+    def read_latest(self) -> Any | None:
+        return self.frames.get_latest()
+
     def stop(self, timeout: float | None = 5.0) -> None:
         self._stop.set()
         if self._capture:

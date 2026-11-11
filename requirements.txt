@@ -1,3 +1,10 @@
 opencv-python>=4.8
+numpy>=1.26,<2
 pydantic>=2.0
 PyYAML>=6.0
+onnxruntime>=1.17
+mediapipe>=0.10.14
+# Optional, only needed for prune_pytorch_channels:
+# torch>=2.2
+# torch-pruning>=1.4
+# Optional model export tooling: ultralytics>=8.2

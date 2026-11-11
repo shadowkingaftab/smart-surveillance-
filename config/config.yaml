@@ -4,3 +4,24 @@ edge:
   reconnect_delay_seconds: 2.0
 cameras: []
 # Example camera entry: {id: lobby, source: rtsp://user:password@host/stream, fallback_sources: [0]}
+inference:
+  yolo_onnx_model: models/yolo.onnx
+  pose_task_model: models/pose_landmarker.task
+  reid_onnx_model: null
+  input_size: 640
+  confidence_threshold: 0.35
+  iou_threshold: 0.45
+  output_format: auto
+  providers: [CPUExecutionProvider]
+  # Supply a full class-id map for custom YOLO weights, e.g. {0: person, 1: knife, 2: tool}
+  class_names: {}
+tracking:
+  max_track_age_seconds: 8
+  cross_camera_max_seconds: 90
+  appearance_similarity_threshold: 0.78
+  camera_transitions: {}
+  camera_zones: {}
+threat_assessment:
+  loiter_seconds: 180
+  normal_waiting_cameras: []
+  score_decay_seconds: 45

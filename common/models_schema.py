@@ -29,6 +29,7 @@ class DetectionBox(BaseModel):
     confidence: float = Field(ge=0, le=1)
     bbox: BoundingBox
     local_track_id: int | None = None
+    appearance_embedding: list[float] | None = Field(default=None, min_length=1)
 
 
 class KeypointLandmark(BaseModel):
@@ -44,6 +45,35 @@ class PoseLandmarks(BaseModel):
     person_track_id: int | None = None
     landmarks: list[KeypointLandmark] = Field(default_factory=list)
     activity_primitive: str | None = None
+
+
+class ThreatLevel(str, Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class ThreatAssessment(BaseModel):
+    assessment_id: str
+    global_track_id: str | None = None
+    camera_id: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    behavior_primitive: str
+    threat_level: ThreatLevel
+    confidence_score: float = Field(ge=0, le=1)
+    is_anomaly: bool
+    context_notes: str
+
+
+class CrossCameraTrack(BaseModel):
+    global_track_id: str
+    active_camera_ids: list[str] = Field(default_factory=list)
+    local_track_mappings: dict[str, int] = Field(default_factory=dict)
+    feature_embedding: list[float] | None = None
+    last_known_location: str
+    first_seen: datetime
+    last_seen: datetime
 
 
 class FrameMetadata(BaseModel):
