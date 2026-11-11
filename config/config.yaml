@@ -33,3 +33,7 @@ alerting:
   alert_cooldown_seconds: 60
   delivery_timeout_seconds: 5
   dashboard_queue_size: 128
+feedback_loop:
+  directory: feedback
+  max_clip_size_mb: 250
+  token_environment_variable: SMARTSURVEILLANCE_API_TOKEN
