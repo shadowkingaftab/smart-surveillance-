@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1018">
+  <title>Sentinel · Local Security Dashboard</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1018; --panel:#111a26; --panel2:#151f2d; --line:#263446; --text:#e7edf5; --muted:#91a0b4; --green:#57d6a0; --amber:#f5bd62; --red:#ff6e73; --blue:#72a9ff; }
+    * { box-sizing:border-box } body { margin:0; min-height:100vh; background:radial-gradient(ellipse at 18% -20%,#1a2b40 0,transparent 46%),var(--bg); color:var(--text); font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif }
+    button,input,select { font:inherit } button { cursor:pointer } .shell { max-width:1440px; margin:auto; padding:24px clamp(16px,3vw,42px) 40px }
+    header { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:26px } .brand { display:flex; align-items:center; gap:13px } .logo { width:42px;height:42px;border:1px solid #38516d;border-radius:13px;display:grid;place-items:center;color:#9cc4ff;background:linear-gradient(145deg,#1c2b3d,#101a27);font-size:21px } h1 {font-size:19px;letter-spacing:.01em;margin:0} .subhead {color:var(--muted);font-size:12px;margin-top:2px} .header-right { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:flex-end }
+    .status-pill,.chip {display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 11px;color:var(--muted);font-size:12px;background:#111a25}.dot {width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px currentColor}.dot.online{background:var(--green)}.dot.offline{background:var(--red)}
+    .layout {display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.9fr);gap:18px;align-items:start}.left-col,.right-col{display:grid;gap:18px}.panel{background:linear-gradient(160deg,rgba(20,30,43,.96),rgba(15,23,34,.97));border:1px solid var(--line);border-radius:17px;box-shadow:0 18px 45px #0002;overflow:hidden}.panel-head{padding:17px 19px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}.panel-title{font-weight:650;font-size:14px}.panel-kicker{font-size:11px;color:var(--muted);margin-top:2px}.panel-body{padding:18px 19px}
+    .camera-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.select,input[type=password],input[type=text]{background:#0c131d;border:1px solid #2a3a4f;color:var(--text);border-radius:9px;padding:9px 11px;outline:none}.select{min-width:180px;max-width:100%}input:focus,select:focus{border-color:#6599e6;box-shadow:0 0 0 3px #538ae51c}.button{border:1px solid #34465c;background:#1a2737;color:var(--text);padding:9px 13px;border-radius:9px;font-weight:600;transition:.15s}.button:hover{background:#24364b;border-color:#466484}.button.primary{color:#081610;background:#70deb0;border-color:#70deb0}.button.primary:hover{background:#8be9c0}.button:disabled{opacity:.45;cursor:not-allowed}.button.small{font-size:12px;padding:6px 9px}.button.danger{color:#ffb0b2;border-color:#64333c;background:#27151b}.button.good{color:#a1f0ca;border-color:#24533f;background:#12271f}
+    .camera-stage{position:relative;background:#05080d;min-height:240px;display:grid;place-items:center;overflow:hidden}.camera-stage video{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:#05080d}.camera-stage canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.camera-placeholder{padding:55px 20px;text-align:center;color:#8796a9}.camera-placeholder .cam-icon{font-size:34px;margin-bottom:8px;opacity:.8}.video-wrap{display:none;position:relative;width:100%;background:#05080d}.video-wrap.active{display:block}.camera-stage.has-video .camera-placeholder{display:none}.video-wrap video{height:100%;aspect-ratio:auto}.live-badge{position:absolute;left:13px;top:13px;padding:5px 9px;border-radius:7px;background:#07110de8;color:#8df0be;font-size:10px;font-weight:800;letter-spacing:.12em;display:flex;gap:7px;align-items:center}.camera-foot{display:flex;justify-content:space-between;gap:12px;padding:11px 18px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}
+    .notice{border:1px solid #57492f;background:#251f14;color:#e9c98f;border-radius:11px;padding:11px 13px;font-size:12px}.notice.ready{border-color:#285542;background:#12231d;color:#9de0bd}.notice.error{border-color:#63313a;background:#28151a;color:#ffb3b4}.notice ul{margin:6px 0 0;padding-left:18px}.auth-row{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:9px}.auth-row input{width:100%}.tiny{font-size:11px;color:var(--muted)}.ai-toggle{display:flex;align-items:center;gap:8px;color:#cad4e2;font-size:12px;margin-top:12px}.ai-toggle input{accent-color:#70deb0;width:15px;height:15px}.ai-toggle input:disabled{opacity:.4}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{background:#0e1620;border:1px solid #243245;border-radius:11px;padding:12px}.metric-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}.metric-value{font-size:19px;font-weight:700;margin-top:4px}.metric-note{font-size:10px;color:#8191a6;margin-top:1px}.section-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#8191a6;font-weight:700;margin:17px 0 9px}
+    .detection-list,.alert-list{display:grid;gap:8px}.empty{border:1px dashed #304056;border-radius:10px;color:#8796a9;padding:16px;text-align:center;font-size:12px}.detection-row{display:grid;grid-template-columns:9px 1fr auto;gap:9px;align-items:center;background:#0e1620;border:1px solid #223044;padding:9px 10px;border-radius:9px}.swatch{width:8px;height:8px;border-radius:3px;background:var(--blue)}.det-name{font-weight:600;font-size:12px}.det-sub{font-size:10px;color:var(--muted)}.confidence{font-size:11px;color:#b9c7d8;font-variant-numeric:tabular-nums}
+    .alert-list{max-height:480px;overflow:auto}.alert-card{background:#0e1620;border:1px solid #28374b;border-left:3px solid var(--amber);padding:12px;border-radius:10px}.alert-card.CRITICAL,.alert-card.HIGH{border-left-color:var(--red)}.alert-card.MEDIUM{border-left-color:var(--amber)}.alert-top{display:flex;justify-content:space-between;gap:10px}.severity{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--amber)}.severity.CRITICAL,.severity.HIGH{color:#ff868a}.alert-time{font-size:10px;color:var(--muted)}.alert-desc{font-size:12px;font-weight:600;margin:7px 0 3px}.alert-meta{font-size:10px;color:var(--muted)}.alert-actions{display:flex;gap:7px;margin-top:10px}.footnote{margin-top:18px;text-align:center;color:#708096;font-size:10px}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.right-col{grid-template-columns:1fr 1fr}.camera-stage{min-height:200px}}@media(max-width:600px){.shell{padding:16px 12px 28px}header{align-items:flex-start}.header-right{gap:7px}.right-col{grid-template-columns:1fr}.panel-head,.panel-body{padding-left:14px;padding-right:14px}.camera-controls{display:grid;grid-template-columns:1fr 1fr}.camera-controls .select{grid-column:1/-1;width:100%}.camera-controls button{width:100%}.metrics{gap:6px}.metric{padding:9px}.metric-value{font-size:16px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand"><div class="logo" aria-hidden="true">◈</div><div><h1>Sentinel <span style="font-weight:400;color:#90a1b5">/ local operations</span></h1><div class="subhead">Smart Surveillance · laptop camera console</div></div></div>
+      <div class="header-right"><span class="status-pill"><i id="apiDot" class="dot"></i><span id="apiState">Checking local service</span></span><span class="chip">LOCAL SESSION</span></div>
+    </header>
+
+    <div class="layout">
+      <section class="left-col">
+        <article class="panel">
+          <div class="panel-head"><div><div class="panel-title">Camera monitor</div><div class="panel-kicker">Preview stays in this browser</div></div><span id="cameraState" class="status-pill"><i class="dot"></i>Camera off</span></div>
+          <div class="panel-body" style="padding-bottom:14px"><div class="camera-controls"><select id="cameraSelect" class="select" aria-label="Choose camera"><option value="">Choose a camera</option></select><button id="startCamera" class="button primary">Start camera</button><button id="stopCamera" class="button" disabled>Stop</button></div></div>
+          <div id="cameraStage" class="camera-stage"><div class="camera-placeholder"><div class="cam-icon">▣</div><strong>Camera preview is off</strong><div class="tiny" style="margin-top:4px">Start the camera and allow browser access when prompted.</div></div><div id="videoWrap" class="video-wrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><span class="live-badge"><i class="dot online"></i>LIVE PREVIEW</span></div></div>
+          <div class="camera-foot"><span id="cameraResolution">No camera selected</span><span id="frameRate">Analysis idle</span></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><div><div class="panel-title">Inference and camera access</div><div class="panel-kicker">AI analysis is optional and sends sampled frames to this local server.</div></div><span id="aiBadge" class="chip">Checking models</span></div>
+          <div class="panel-body">
+            <div id="modelNotice" class="notice">Checking whether local inference models are available…</div>
+            <div style="height:14px"></div>
+            <label class="tiny" for="apiToken">Local API token <span style="color:#718198">(kept only in this page session)</span></label>
+            <div class="auth-row" style="margin-top:6px"><input id="apiToken" type="password" autocomplete="off" placeholder="Set SMARTSURVEILLANCE_API_TOKEN before starting the server"><button id="connectAlerts" class="button">Connect alerts</button></div>
+            <label class="ai-toggle"><input id="analysisToggle" type="checkbox" disabled><span>Analyze one reduced-size frame per second while camera is on</span></label>
+            <div id="authMessage" class="tiny" style="margin-top:7px">Preview does not require a token. AI and alert controls require the configured server token.</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><div><div class="panel-title">Current frame</div><div class="panel-kicker">Results from the latest sampled frame</div></div><span id="lastFrameTime" class="tiny">No analysis yet</span></div>
+          <div class="panel-body"><div class="metrics"><div class="metric"><div class="metric-label">Objects</div><div id="objectCount" class="metric-value">—</div><div class="metric-note">detected in latest frame</div></div><div class="metric"><div class="metric-label">Pose tracks</div><div id="poseCount" class="metric-value">—</div><div class="metric-note">landmark sets found</div></div><div class="metric"><div class="metric-label">Inference</div><div id="latency" class="metric-value">—</div><div class="metric-note">milliseconds per frame</div></div></div><div class="section-label">Detected objects</div><div id="detectionList" class="detection-list"><div class="empty">Start the camera and enable analysis to see detections.</div></div></div>
+        </article>
+      </section>
+
+      <aside class="right-col">
+        <article class="panel">
+          <div class="panel-head"><div><div class="panel-title">Confirmed alerts</div><div class="panel-kicker">Live events from the central alert gate</div></div><span id="alertCount" class="chip">0 alerts</span></div>
+          <div class="panel-body"><div id="alertList" class="alert-list"><div id="alertEmpty" class="empty">No confirmed alerts in this session.</div></div></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div><div class="panel-title">How to run locally</div><div class="panel-kicker">Use the webcam from this laptop</div></div><span class="chip">127.0.0.1</span></div>
+          <div class="panel-body" style="font-size:12px;color:#b3c0d0"><ol style="margin:0;padding-left:18px"><li>Run the API on this laptop and open this page at <code style="color:#9bc1ff">http://127.0.0.1:8000</code>.</li><li>Click <b>Start camera</b> and allow camera access.</li><li>For AI, install requirements, add model files, and set the API token before starting the API.</li></ol><p class="tiny" style="margin:12px 0 0">The browser camera is available on localhost (or HTTPS). Opening this page from another device by LAN IP requires HTTPS.</p></div>
+        </article>
+      </aside>
+    </div>
+    <div class="footnote">Local preview · no cloud streaming · camera frames are uploaded only when AI analysis is enabled</div>
+  </main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const video = $('video'), canvas = $('overlay'), ctx = canvas.getContext('2d');
+  let stream = null, inferenceReady = false, inferenceBusy = false, analysisTimer = null;
+  let socket = null, seenAlerts = new Set(), activeCameraId = `browser-${crypto.randomUUID()}`;
+  const token = () => $('apiToken').value.trim();
+
+  async function refreshStatus() {
+    try {
+      const response = await fetch('/dashboard/status');
+      if (!response.ok) throw new Error('Local API unavailable');
+      const status = await response.json();
+      $('apiDot').className = 'dot online'; $('apiState').textContent = 'Local service online';
+      inferenceReady = status.inference_ready;
+      const analysisAvailable = inferenceReady && status.api_token_configured;
+      $('analysisToggle').disabled = !analysisAvailable;
+      $('aiBadge').textContent = analysisAvailable ? 'AI READY' : inferenceReady ? 'TOKEN REQUIRED' : 'PREVIEW MODE';
+      $('aiBadge').style.color = analysisAvailable ? 'var(--green)' : 'var(--amber)';
+      const notice = $('modelNotice');
+      notice.className = `notice ${analysisAvailable ? 'ready' : ''}`;
+      notice.innerHTML = analysisAvailable
+        ? 'Models, runtime packages, and API token are ready. Enable analysis to send one reduced-size camera frame per second to this local server.'
+        : inferenceReady
+          ? 'Models are ready, but SMARTSURVEILLANCE_API_TOKEN is not set on the server. Configure it and restart the API to enable analysis.'
+        : `Live preview works now. AI inference is waiting for:<ul>${status.missing_requirements.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+      if (!status.api_token_configured) {
+        $('authMessage').textContent = 'SMARTSURVEILLANCE_API_TOKEN is not set on the server. Preview still works; configure the token to use AI and alerts.';
+      }
+    } catch (error) {
+      $('apiDot').className = 'dot offline'; $('apiState').textContent = 'Local service offline';
+      $('modelNotice').className = 'notice error'; $('modelNotice').textContent = 'Cannot reach the local API. Start it with the command in docs/setup_guide.md.';
+      $('aiBadge').textContent = 'API OFFLINE'; $('analysisToggle').disabled = true;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  }
+
+  async function listCameras() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(device => device.kind === 'videoinput');
+    const select = $('cameraSelect'), current = select.value;
+    select.innerHTML = '<option value="">Choose a camera</option>';
+    cameras.forEach((camera, index) => {
+      const option = document.createElement('option'); option.value = camera.deviceId;
+      option.textContent = camera.label || `Camera ${index + 1}`; select.append(option);
+    });
+    if (cameras.some(camera => camera.deviceId === current)) select.value = current;
+    return cameras;
+  }
+
+  async function startCamera(deviceId = '') {
+    stopCamera();
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({audio:false, video: deviceId ? {deviceId:{exact:deviceId}, width:{ideal:1280}, height:{ideal:720}} : {width:{ideal:1280},height:{ideal:720}}});
+      video.srcObject = stream; await video.play();
+      $('videoWrap').classList.add('active'); $('cameraStage').classList.add('has-video');
+      $('startCamera').disabled = true; $('stopCamera').disabled = false;
+      $('cameraState').innerHTML = '<i class="dot online"></i>Camera live';
+      const track = stream.getVideoTracks()[0]; $('cameraResolution').textContent = `${video.videoWidth} × ${video.videoHeight} · ${track.label || 'camera'}`;
+      $('videoWrap').style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      await listCameras(); if (!$('cameraSelect').value && track.getSettings().deviceId) $('cameraSelect').value = track.getSettings().deviceId;
+      activeCameraId = `browser-${crypto.randomUUID()}`;
+      if ($('analysisToggle').checked) runInferenceLoop();
+    } catch (error) {
+      stopCamera(); $('cameraState').innerHTML = '<i class="dot offline"></i>Camera unavailable';
+      $('modelNotice').className = 'notice error';
+      $('modelNotice').textContent = error.name === 'NotAllowedError' ? 'Camera permission was denied. Allow camera access for localhost in your browser settings and try again.' : `Could not open camera: ${error.message}`;
+    }
+  }
+
+  function stopCamera() {
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    stream = null; video.srcObject = null; $('videoWrap').classList.remove('active'); $('cameraStage').classList.remove('has-video');
+    $('startCamera').disabled = false; $('stopCamera').disabled = true;
+    $('cameraState').innerHTML = '<i class="dot"></i>Camera off'; $('cameraResolution').textContent = 'No camera selected';
+    $('frameRate').textContent = 'Analysis idle'; ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+
+  function drawDetections(detections, sourceWidth, sourceHeight) {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const colors = {person:'#71e0ae',vehicle:'#78adff',weapon:'#ff7278',benign_tool:'#f4c36c'};
+    const scaleX = canvas.width / sourceWidth, scaleY = canvas.height / sourceHeight;
+    for (const item of detections) {
+      const box = item.bbox, color = colors[item.category] || '#c0a0ff';
+      const x = box.x_min * scaleX, y = box.y_min * scaleY, width = (box.x_max-box.x_min)*scaleX, height = (box.y_max-box.y_min)*scaleY;
+      ctx.strokeStyle = color; ctx.lineWidth = Math.max(2, canvas.width / 500); ctx.strokeRect(x,y,width,height);
+      const label = `${item.label} ${(item.confidence*100).toFixed(0)}%`;
+      ctx.font = `600 ${Math.max(12,canvas.width/75)}px system-ui`;
+      const labelWidth = ctx.measureText(label).width + 12, labelHeight = Math.max(22,canvas.width/42);
+      ctx.fillStyle = color; ctx.fillRect(x,Math.max(0,y-labelHeight),labelWidth,labelHeight);
+      ctx.fillStyle = '#08110f'; ctx.fillText(label,x+6,Math.max(15,y-6));
+    }
+  }
+
+  function renderFrame(result) {
+    const metadata = result.metadata, detections = metadata.detections || [];
+    drawDetections(detections,metadata.resolution.width,metadata.resolution.height); $('objectCount').textContent = detections.length;
+    $('poseCount').textContent = (metadata.poses || []).length;
+    $('latency').textContent = `${metadata.inference_latency_ms.toFixed(0)} ms`;
+    $('lastFrameTime').textContent = new Date(metadata.timestamp).toLocaleTimeString();
+    $('frameRate').textContent = 'Analyzing · 1 frame/sec';
+    const list = $('detectionList');
+    if (!detections.length) list.innerHTML = '<div class="empty">No objects detected in the latest frame.</div>';
+    else list.innerHTML = detections.map(item => `<div class="detection-row"><i class="swatch" style="background:${item.category==='weapon'?'var(--red)':item.category==='person'?'var(--green)':'var(--blue)'}"></i><div><div class="det-name">${escapeHtml(item.label)}</div><div class="det-sub">${escapeHtml(item.category)} · ${escapeHtml(item.detection_id.slice(0,8))}</div></div><span class="confidence">${(item.confidence*100).toFixed(1)}%</span></div>`).join('');
+    (result.alerts || []).forEach(addAlert);
+  }
+
+  async function runInferenceLoop() {
+    clearTimeout(analysisTimer);
+    if (!$('analysisToggle').checked || !stream || !inferenceReady) return;
+    if (!token()) { $('authMessage').textContent = 'Enter the server token to enable AI analysis.'; $('analysisToggle').checked = false; return; }
+    if (inferenceBusy) { analysisTimer = setTimeout(runInferenceLoop, 300); return; }
+    inferenceBusy = true;
+    try {
+      const scale = Math.min(1, 640 / video.videoWidth), width = Math.round(video.videoWidth*scale), height = Math.round(video.videoHeight*scale);
+      const sample = document.createElement('canvas'); sample.width = width; sample.height = height;
+      sample.getContext('2d').drawImage(video,0,0,width,height);
+      const blob = await new Promise(resolve => sample.toBlob(resolve,'image/jpeg',0.78));
+      if (!blob) throw new Error('Could not encode the camera frame');
+      const form = new FormData(); form.append('camera_id',activeCameraId); form.append('file',blob,'camera.jpg');
+      const response = await fetch('/dashboard/frame',{method:'POST',headers:{Authorization:`Bearer ${token()}`},body:form});
+      if (!response.ok) { const detail = await response.json().catch(()=>({})); throw new Error(detail.detail || `Inference request failed (${response.status})`); }
+      renderFrame(await response.json()); $('authMessage').textContent = 'Authenticated · sampled frames are sent to this local server only.';
+    } catch (error) {
+      $('authMessage').textContent = error.message;
+      if (/token|authentication|bearer/i.test(error.message)) $('analysisToggle').checked = false;
+    } finally {
+      inferenceBusy = false;
+      if ($('analysisToggle').checked && stream) analysisTimer = setTimeout(runInferenceLoop,1000);
+      else $('frameRate').textContent = 'Analysis idle';
+    }
+  }
+
+  function addAlert(alert) {
+    if (!alert || seenAlerts.has(alert.alert_id)) return;
+    seenAlerts.add(alert.alert_id);
+    const empty = $('alertEmpty'); if (empty) empty.remove();
+    const level = alert.threat_assessment?.threat_level || 'HIGH';
+    const description = alert.threat_assessment?.behavior_primitive || 'Threat event';
+    const card = document.createElement('div'); card.className = `alert-card ${level}`;
+    card.innerHTML = `<div class="alert-top"><span class="severity ${level}">${escapeHtml(level)} · CONFIRMED</span><time class="alert-time">${new Date(alert.timestamp).toLocaleTimeString()}</time></div><div class="alert-desc">${escapeHtml(description.replaceAll('_',' '))}</div><div class="alert-meta">Camera ${escapeHtml(alert.camera_id)} · score ${Math.round((alert.threat_assessment?.confidence_score || 0)*100)}%</div><div class="alert-actions"><button class="button small good" data-action="confirmed_threat">Confirm threat</button><button class="button small danger" data-action="false_alarm">False alarm</button></div>`;
+    card.querySelectorAll('button').forEach(button => button.addEventListener('click', () => recordAction(alert.alert_id,button.dataset.action,button,card)));
+    $('alertList').prepend(card); $('alertCount').textContent = `${seenAlerts.size} alert${seenAlerts.size===1?'':'s'}`;
+  }
+
+  async function recordAction(alertId, action, button, card) {
+    if (!token()) { $('authMessage').textContent = 'Enter the API token before recording operator actions.'; return; }
+    const operatorId = window.prompt('Operator name or ID:'); if (!operatorId) return;
+    button.disabled = true;
+    try {
+      const response = await fetch(`/alerts/${encodeURIComponent(alertId)}/action`,{method:'POST',headers:{Authorization:`Bearer ${token()}`,'Content-Type':'application/json'},body:JSON.stringify({action,operator_id:operatorId})});
+      if (!response.ok) throw new Error((await response.json()).detail || `Request failed (${response.status})`);
+      card.querySelector('.alert-actions').innerHTML = `<span class="tiny">Operator action recorded: ${escapeHtml(action.replaceAll('_',' '))}</span>`;
+    } catch(error) { button.disabled = false; $('authMessage').textContent = error.message; }
+  }
+
+  function connectAlerts() {
+    if (!token()) { $('authMessage').textContent = 'Enter the server token to connect the live alerts feed.'; return; }
+    if (socket) socket.close();
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    socket = new WebSocket(`${protocol}//${location.host}/ws/alerts`,['bearer',token()]);
+    socket.onopen = () => { $('connectAlerts').textContent = 'Alerts connected'; $('authMessage').textContent = 'Authenticated · live alert feed connected.'; };
+    socket.onmessage = event => { try { addAlert(JSON.parse(event.data)); } catch {} };
+    socket.onclose = () => { $('connectAlerts').textContent = 'Connect alerts'; };
+    socket.onerror = () => { $('authMessage').textContent = 'Could not connect to alerts. Check the API token and local server.'; };
+  }
+
+  $('startCamera').addEventListener('click', () => startCamera($('cameraSelect').value));
+  $('stopCamera').addEventListener('click', stopCamera);
+  $('cameraSelect').addEventListener('change', event => { if (stream) startCamera(event.target.value); });
+  $('analysisToggle').addEventListener('change', () => $('analysisToggle').checked ? runInferenceLoop() : clearTimeout(analysisTimer));
+  $('connectAlerts').addEventListener('click',connectAlerts);
+  if (!navigator.mediaDevices?.getUserMedia) {
+    $('startCamera').disabled = true;
+    $('modelNotice').className = 'notice error'; $('modelNotice').textContent = 'This browser cannot access cameras here. Open this page at http://127.0.0.1:8000 or use HTTPS.';
+  } else { navigator.mediaDevices.enumerateDevices().then(listCameras).catch(()=>{}); }
+  window.addEventListener('beforeunload',() => { if (socket) socket.close(); if (stream) stream.getTracks().forEach(track=>track.stop()); });
+  refreshStatus();
+})();
+</script>
+</body>
+</html>
